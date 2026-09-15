@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Codex 与 Claude Code 环境目录对照</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,500;1,600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #FAF9F6; min-height: 100vh; padding: 2.5rem 2rem; color: #1a1a1a; }
+    .container { max-width: 1300px; margin: 0 auto; }
+    h2 { font-size: 1rem; font-weight: 700; margin: 2rem 0 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    h2 .bar { width: 3px; height: 15px; border-radius: 2px; background: #D97757; }
+    h2.sage .bar { background: #5B8A72; }
+    h2.plum .bar { background: #8B6F8A; }
+    h2.rose .bar { background: #C96464; }
+    .sec-desc { color: #8B8680; font-size: 0.75rem; margin: 0 0 1rem 0.875rem; line-height: 1.6; }
+    .diagram-container { background: #FFFFFF; border-radius: 12px; border: 1px solid #E8E4DE; padding: 1.5rem; overflow-x: auto; box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02); }
+    svg { width: 100%; display: block; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+    .card { background: #FFFFFF; border-radius: 10px; border: 1px solid #E8E4DE; padding: 1.125rem 1.25rem; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+    .card-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.625rem; }
+    .card-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .card-dot.terracotta { background: #D97757; }
+    .card-dot.sage { background: #5B8A72; }
+    .card-dot.plum { background: #8B6F8A; }
+    .card-dot.rose { background: #C96464; }
+    .card h3 { font-size: 0.8125rem; font-weight: 600; }
+    .card ul { list-style: none; color: #6B6560; font-size: 0.75rem; line-height: 1.6; }
+    .card li { margin-bottom: 0.25rem; }
+    code { font-family: 'SF Mono', Menlo, monospace; font-size: 0.9em; background: #F5F2ED; padding: 0.1em 0.35em; border-radius: 3px; color: #A85536; }
+    table { width: 100%; border-collapse: collapse; background: #FFF; border-radius: 10px; overflow: hidden; border: 1px solid #E8E4DE; font-size: 0.75rem; }
+    th { background: #F5F2ED; padding: 0.7rem 0.9rem; text-align: left; font-weight: 600; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; color: #6B6560; }
+    td { padding: 0.7rem 0.9rem; border-top: 1px solid #F0EDE8; color: #4A4540; vertical-align: top; line-height: 1.55; }
+    tr:hover td { background: #FDFCFA; }
+    td code { font-size: 0.85em; }
+    .tag { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 3px; font-size: 0.6rem; font-weight: 600; letter-spacing: 0.02em; }
+    .tag.locked { background: #FBEEE9; color: #A85536; }
+    .tag.free { background: #EDF3EF; color: #47705C; }
+    .warn { background: #FDF6F0; border: 1px solid #F0DCC8; border-left: 3px solid #D97757; border-radius: 8px; padding: 1rem 1.125rem; margin-top: 1rem; font-size: 0.75rem; color: #6B5A4A; line-height: 1.65; }
+    .warn b { color: #A85536; }
+    /* ===== Hero ===== */
+    .hero { position: relative; overflow: hidden; background: linear-gradient(135deg, #FFFFFF 0%, #FDFBF8 55%, #FBF4EE 100%); border: 1px solid #EDE7DF; border-radius: 16px; padding: 2.25rem 2.5rem 2rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03), 0 12px 32px rgba(180,150,120,0.07); }
+    .hero::before { content: ''; position: absolute; top: -120px; right: -90px; width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(217,119,87,0.13) 0%, rgba(217,119,87,0) 70%); pointer-events: none; }
+    .hero::after { content: ''; position: absolute; bottom: -140px; left: -70px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, rgba(91,138,114,0.11) 0%, rgba(91,138,114,0) 70%); pointer-events: none; }
+    .hero-inner { position: relative; z-index: 1; }
+    .hero-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .eyebrow { display: flex; align-items: center; gap: 0.6rem; }
+    .pulse-dot { width: 9px; height: 9px; background: #D97757; border-radius: 50%; box-shadow: 0 0 0 3px rgba(217,119,87,0.16); animation: pulse 2.6s ease-in-out infinite; flex-shrink: 0; }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.55; transform: scale(0.86); } }
+    .eyebrow span { font-size: 0.625rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #A89B8C; }
+    .for-badge { display: inline-flex; align-items: baseline; gap: 0.4rem; padding: 0.4rem 0.9rem 0.42rem; border-radius: 100px; background: #FFFFFF; border: 1px solid #E8DFD4; box-shadow: 0 1px 2px rgba(160,130,100,0.07); }
+    .for-badge .for-label { font-size: 0.625rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #B5A695; }
+    .for-badge .for-name { font-family: 'Playfair Display', Georgia, serif; font-size: 0.95rem; font-weight: 600; font-style: italic; letter-spacing: 0.01em; background: linear-gradient(100deg, #D97757 0%, #C0674F 45%, #8B6F8A 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #D97757; }
+    h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1.24; color: #17150F; }
+    h1 .accent { background: linear-gradient(100deg, #D97757 0%, #B85C42 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #D97757; }
+    .hero-sub { margin-top: 0.7rem; font-size: 0.875rem; color: #7D766C; font-weight: 500; letter-spacing: -0.005em; }
+    .hero-rule { width: 46px; height: 3px; border-radius: 2px; margin: 1.15rem 0 1.1rem; background: linear-gradient(90deg, #D97757 0%, #E0A88E 60%, rgba(224,168,142,0) 100%); }
+    .hero-desc { font-size: 0.75rem; line-height: 1.75; color: #857D72; max-width: 76ch; }
+    .hero-desc b { color: #A85536; font-weight: 600; }
+    .hero-meta { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1.35rem; }
+    .chip { font-size: 0.6875rem; font-weight: 500; color: #7A7268; background: rgba(255,255,255,0.85); border: 1px solid #EAE2D8; border-radius: 100px; padding: 0.3rem 0.75rem; }
+    .chip.hl { color: #A85536; border-color: #F0DCC8; background: #FEF8F4; font-weight: 600; }
+    @media (max-width: 680px) {
+      .hero { padding: 1.75rem 1.5rem; }
+      h1 { font-size: 1.5rem; }
+      .hero-top { margin-bottom: 1.25rem; }
+    }
+    .footer { text-align: center; margin-top: 2.5rem; padding-top: 1.25rem; border-top: 1px solid #EFEBE5; color: #B0AAA4; font-size: 0.6875rem; line-height: 1.7; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <div class="hero-inner">
+        <div class="hero-top">
+          <div class="eyebrow">
+            <div class="pulse-dot"></div>
+            <span>Environment Topology</span>
+          </div>
+          <div class="for-badge">
+            <span class="for-label">for</span>
+            <span class="for-name">Jianan</span>
+          </div>
+        </div>
+        <h1>Codex 与 Claude Code<br><span class="accent">环境目录全景对照</span></h1>
+        <p class="hero-sub">全局 vs 项目级 · 配置与技能落位 · 会话存储机制 · 双环境迁移 · API Key 与中转站原理</p>
+        <div class="hero-rule"></div>
+        <p class="hero-desc">本文对比两个 AI 编码助手在文件系统上的组织方式。核心差异：<b>Claude Code 以单一目录收纳全部内容</b>；<b>Codex 将技能、配置、项目指令分散在三处</b>，其中多个路径名由程序内部写死，不可重命名。示例中的 <code>&lt;user&gt;</code>、<code>&lt;project&gt;</code> 均为占位符。</p>
+        <div class="hero-meta">
+          <span class="chip hl">6 章节</span>
+          <span class="chip">3 张图解</span>
+          <span class="chip">原生锁定路径清单</span>
+          <span class="chip">迁移可行性对照</span>
+          <span class="chip">中转站链路原理</span>
+        </div>
+      </div>
+    </div>
+
+    <h2><span class="bar"></span>一、目录全景对照图</h2>
+    <p class="sec-desc">左侧 Claude Code 一个目录管全部；右侧 Codex 原生分成三处。虚线表示同一层级的等价关系。</p>
+    <div class="diagram-container">
+      <svg viewBox="0 0 1150 700">
+        <defs>
+          <marker id="ar1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#B0AAA4"/></marker>
+          <marker id="ar2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#D97757"/></marker>
+          <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="0.6" fill="#E0DCD6"/></pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#dots)"/>
+
+        <rect x="60" y="18" width="460" height="42" rx="8" fill="#F3F6F4" stroke="#5B8A72" stroke-width="1.5"/>
+        <text x="290" y="37" fill="#5B8A72" font-size="9" font-weight="600" text-anchor="middle">ANTHROPIC</text>
+        <text x="290" y="52" fill="#1a1a1a" font-size="13" font-weight="700" text-anchor="middle">Claude Code</text>
+
+        <rect x="620" y="18" width="470" height="42" rx="8" fill="#FBF1EC" stroke="#D97757" stroke-width="1.5"/>
+        <text x="855" y="37" fill="#A85536" font-size="9" font-weight="600" text-anchor="middle">OPENAI</text>
+        <text x="855" y="52" fill="#1a1a1a" font-size="13" font-weight="700" text-anchor="middle">Codex</text>
+
+        <text x="60" y="92" fill="#8B6F8A" font-size="10" font-weight="700" letter-spacing="0.08em">全局层 · GLOBAL</text>
+        <line x1="150" y1="88" x2="1090" y2="88" stroke="#E8E4DE" stroke-width="1"/>
+
+        <rect x="60" y="104" width="460" height="186" rx="10" fill="#FFFFFF" stroke="#5B8A72" stroke-width="1.5"/>
+        <text x="80" y="126" fill="#1a1a1a" font-size="12" font-weight="700">~/.claude/</text>
+        <text x="200" y="126" fill="#5B8A72" font-size="9" font-weight="600">单一入口</text>
+        <line x1="80" y1="134" x2="500" y2="134" stroke="#F0EDE8" stroke-width="1"/>
+        <text x="90" y="154" fill="#4A4540" font-size="10.5">├── CLAUDE.md</text>
+        <text x="330" y="154" fill="#B0AAA4" font-size="9">全局指令</text>
+        <text x="90" y="176" fill="#4A4540" font-size="10.5">├── settings.json</text>
+        <text x="330" y="176" fill="#B0AAA4" font-size="9">权限白名单</text>
+        <text x="90" y="198" fill="#4A4540" font-size="10.5">├── skills/</text>
+        <text x="330" y="198" fill="#5B8A72" font-size="9" font-weight="600">全局技能</text>
+        <text x="90" y="220" fill="#4A4540" font-size="10.5">├── plugins/</text>
+        <text x="90" y="242" fill="#4A4540" font-size="10.5">└── projects/&lt;路径编码&gt;/</text>
+        <text x="330" y="242" fill="#8B6F8A" font-size="9" font-weight="600">会话 · 按项目分</text>
+        <rect x="86" y="256" width="410" height="24" rx="4" fill="#F5F8F6"/>
+        <text x="96" y="272" fill="#47705C" font-size="9">指令、配置、技能、会话全部收在一个目录内</text>
+
+        <rect x="620" y="104" width="470" height="186" rx="10" fill="#FFFFFF" stroke="#D97757" stroke-width="1.5"/>
+        <text x="640" y="126" fill="#1a1a1a" font-size="12" font-weight="700">$CODEX_HOME/</text>
+        <text x="790" y="126" fill="#D97757" font-size="9" font-weight="600">默认 ~/.codex ·可由环境变量改写</text>
+        <line x1="640" y1="134" x2="1070" y2="134" stroke="#F0EDE8" stroke-width="1"/>
+        <text x="650" y="154" fill="#4A4540" font-size="10.5">├── AGENTS.md</text>
+        <text x="890" y="154" fill="#B0AAA4" font-size="9">全局指令</text>
+        <text x="650" y="176" fill="#4A4540" font-size="10.5">├── config.toml</text>
+        <text x="890" y="176" fill="#B0AAA4" font-size="9">模型/沙箱/MCP</text>
+        <text x="650" y="198" fill="#4A4540" font-size="10.5">├── skills/</text>
+        <text x="890" y="198" fill="#D97757" font-size="9" font-weight="600">全局技能</text>
+        <text x="650" y="220" fill="#4A4540" font-size="10.5">├── sessions/YYYY/MM/DD/</text>
+        <text x="890" y="220" fill="#8B6F8A" font-size="9" font-weight="600">会话 · 按日期分</text>
+        <text x="650" y="242" fill="#4A4540" font-size="10.5">└── session_index.jsonl</text>
+        <rect x="646" y="256" width="420" height="24" rx="4" fill="#FBF1EC"/>
+        <text x="656" y="272" fill="#A85536" font-size="9">全局层同样是单一目录，与 Claude 结构对称</text>
+
+        <line x1="520" y1="200" x2="620" y2="200" stroke="#B0AAA4" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#ar1)" marker-start="url(#ar1)"/>
+        <rect x="530" y="181" width="80" height="18" rx="4" fill="#FAF9F6"/>
+        <text x="570" y="194" fill="#8B8680" font-size="8.5" font-weight="600" text-anchor="middle">结构对称 ✓</text>
+
+        <text x="60" y="326" fill="#8B6F8A" font-size="10" font-weight="700" letter-spacing="0.08em">项目级 · PROJECT</text>
+        <line x1="220" y1="322" x2="1090" y2="322" stroke="#E8E4DE" stroke-width="1"/>
+
+        <rect x="60" y="338" width="460" height="164" rx="10" fill="#FFFFFF" stroke="#5B8A72" stroke-width="1.5"/>
+        <text x="80" y="360" fill="#1a1a1a" font-size="12" font-weight="700">&lt;project&gt;/.claude/</text>
+        <text x="240" y="360" fill="#5B8A72" font-size="9" font-weight="600">1 处</text>
+        <line x1="80" y1="368" x2="500" y2="368" stroke="#F0EDE8" stroke-width="1"/>
+        <text x="90" y="388" fill="#4A4540" font-size="10.5">├── CLAUDE.md</text>
+        <text x="330" y="388" fill="#B0AAA4" font-size="9">项目指令</text>
+        <text x="90" y="410" fill="#4A4540" font-size="10.5">├── settings.local.json</text>
+        <text x="90" y="432" fill="#4A4540" font-size="10.5">├── agents/</text>
+        <text x="330" y="432" fill="#5B8A72" font-size="9" font-weight="600">Agent 定义 (.md)</text>
+        <text x="90" y="454" fill="#4A4540" font-size="10.5">└── skills/</text>
+        <text x="330" y="454" fill="#5B8A72" font-size="9" font-weight="600">项目技能</text>
+        <rect x="86" y="468" width="410" height="24" rx="4" fill="#F5F8F6"/>
+        <text x="96" y="484" fill="#47705C" font-size="9">项目指令文件也收在目录内 · 全部内容一处可见</text>
+
+        <rect x="620" y="338" width="470" height="164" rx="10" fill="#FFFFFF" stroke="#D97757" stroke-width="1.5"/>
+        <text x="640" y="360" fill="#1a1a1a" font-size="12" font-weight="700">.agents/ + .codex/ + 根 AGENTS.md</text>
+        <text x="1012" y="360" fill="#C96464" font-size="9" font-weight="700">原生 3 处</text>
+        <line x1="640" y1="368" x2="1070" y2="368" stroke="#F0EDE8" stroke-width="1"/>
+        <text x="650" y="388" fill="#4A4540" font-size="10.5">.agents/skills/</text>
+        <text x="890" y="388" fill="#D97757" font-size="9" font-weight="600">项目技能</text>
+        <text x="650" y="410" fill="#4A4540" font-size="10.5">.codex/agents/*.toml</text>
+        <text x="890" y="410" fill="#D97757" font-size="9" font-weight="600">Agent 定义 (.toml)</text>
+        <text x="650" y="432" fill="#4A4540" font-size="10.5">.codex/config.toml</text>
+        <text x="890" y="432" fill="#B0AAA4" font-size="9">项目配置</text>
+        <text x="650" y="454" fill="#4A4540" font-size="10.5">AGENTS.md</text>
+        <text x="890" y="454" fill="#C96464" font-size="9" font-weight="600">必须在项目根</text>
+        <rect x="646" y="468" width="420" height="24" rx="4" fill="#FBF1EC"/>
+        <text x="656" y="484" fill="#A85536" font-size="9">技能与配置分家 · AGENTS.md 摊在根目录，无法收进子目录</text>
+
+        <line x1="520" y1="420" x2="620" y2="420" stroke="#D97757" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#ar2)"/>
+        <rect x="524" y="401" width="92" height="18" rx="4" fill="#FAF9F6"/>
+        <text x="570" y="414" fill="#A85536" font-size="8.5" font-weight="600" text-anchor="middle">1 处 → 3 处</text>
+
+        <text x="60" y="542" fill="#5B8A72" font-size="10" font-weight="700" letter-spacing="0.08em">可选整合 · SYMLINK</text>
+        <line x1="230" y1="538" x2="1090" y2="538" stroke="#E8E4DE" stroke-width="1"/>
+
+        <rect x="60" y="554" width="460" height="126" rx="10" fill="#FFFFFF" stroke="#E8E4DE" stroke-width="1.2"/>
+        <text x="80" y="576" fill="#1a1a1a" font-size="11" font-weight="700">为什么不能物理合并</text>
+        <line x1="80" y1="584" x2="500" y2="584" stroke="#F0EDE8" stroke-width="1"/>
+        <text x="90" y="604" fill="#6B6560" font-size="9.5">Codex 程序内部写死了这些发现路径，改名即失效：</text>
+        <text x="98" y="624" fill="#A85536" font-size="9.5" font-weight="600">.agents/skills · .agents/plugins · .codex/config.toml</text>
+        <text x="98" y="641" fill="#A85536" font-size="9.5" font-weight="600">.codex/agents · .codex/hooks · $CODEX_HOME/skills</text>
+        <text x="90" y="663" fill="#6B6560" font-size="9.5">因此只能保留真实目录，用软链另建一个统一入口。</text>
+
+        <rect x="620" y="554" width="470" height="126" rx="10" fill="#F5F8F6" stroke="#5B8A72" stroke-width="1.5"/>
+        <text x="640" y="576" fill="#47705C" font-size="11" font-weight="700">让 .codex/ 成为单一入口</text>
+        <line x1="640" y1="584" x2="1070" y2="584" stroke="#DCE8E1" stroke-width="1"/>
+        <text x="650" y="604" fill="#4A4540" font-size="10">ln -s ../.agents/skills .codex/skills</text>
+        <text x="650" y="626" fill="#4A4540" font-size="10.5">├── agents/   ├── config.toml</text>
+        <text x="650" y="646" fill="#4A4540" font-size="10.5">└── skills ──→ ../.agents/skills</text>
+        <text x="962" y="646" fill="#5B8A72" font-size="9" font-weight="600">软链</text>
+        <rect x="646" y="656" width="420" height="20" rx="4" fill="#FFFFFF"/>
+        <text x="656" y="670" fill="#47705C" font-size="9">真实文件不动 · 原生发现机制不受影响 · 仅新增整齐视图</text>
+      </svg>
+    </div>
+
+    <h2 class="plum"><span class="bar"></span>二、会话存储机制差异</h2>
+    <p class="sec-desc">根本分歧：Claude Code 按项目路径分目录物理隔离；Codex 扁平按日期存放，靠文件内 <code>cwd</code> 字段区分归属。</p>
+    <div class="diagram-container">
+      <svg viewBox="0 0 1150 420">
+        <defs>
+          <marker id="ar3" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0, 7 2.5, 0 5" fill="#8B6F8A"/></marker>
+          <marker id="ar4" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0, 7 2.5, 0 5" fill="#D97757"/></marker>
+          <pattern id="dots2" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="0.6" fill="#E0DCD6"/></pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#dots2)"/>
+
+        <text x="60" y="34" fill="#5B8A72" font-size="11" font-weight="700">Claude Code · 按项目路径分目录</text>
+        <rect x="60" y="46" width="190" height="34" rx="6" fill="#F3F6F4" stroke="#5B8A72" stroke-width="1.3"/>
+        <text x="155" y="67" fill="#47705C" font-size="10" font-weight="600" text-anchor="middle">~/.claude/projects/</text>
+
+        <rect x="300" y="42" width="270" height="30" rx="5" fill="#FFFFFF" stroke="#5B8A72" stroke-width="1.1"/>
+        <text x="312" y="61" fill="#4A4540" font-size="9.5">-Users-&lt;user&gt;-&lt;project-a&gt;/</text>
+        <rect x="590" y="42" width="150" height="30" rx="5" fill="#F5F8F6"/>
+        <text x="600" y="61" fill="#47705C" font-size="9">该项目的全部会话</text>
+
+        <rect x="300" y="82" width="270" height="30" rx="5" fill="#FFFFFF" stroke="#DCE8E1" stroke-width="1.1"/>
+        <text x="312" y="101" fill="#4A4540" font-size="9.5">-Users-&lt;user&gt;-&lt;project-b&gt;/</text>
+
+        <rect x="300" y="122" width="270" height="30" rx="5" fill="#FFFFFF" stroke="#DCE8E1" stroke-width="1.1"/>
+        <text x="312" y="141" fill="#4A4540" font-size="9.5">-Users-&lt;user&gt;/</text>
+        <rect x="590" y="122" width="240" height="30" rx="5" fill="#FDF6F0"/>
+        <text x="600" y="141" fill="#A85536" font-size="8.5">家目录裸跑时也被登记为「项目」</text>
+
+        <line x1="250" y1="57" x2="300" y2="57" stroke="#8B6F8A" stroke-width="1.2" marker-end="url(#ar3)"/>
+        <line x1="250" y1="63" x2="275" y2="63" stroke="#8B6F8A" stroke-width="1" stroke-dasharray="3 2"/>
+        <line x1="275" y1="63" x2="275" y2="97" stroke="#8B6F8A" stroke-width="1" stroke-dasharray="3 2"/>
+        <line x1="275" y1="97" x2="300" y2="97" stroke="#8B6F8A" stroke-width="1.2" marker-end="url(#ar3)"/>
+        <line x1="275" y1="97" x2="275" y2="137" stroke="#8B6F8A" stroke-width="1" stroke-dasharray="3 2"/>
+        <line x1="275" y1="137" x2="300" y2="137" stroke="#8B6F8A" stroke-width="1.2" marker-end="url(#ar3)"/>
+
+        <rect x="60" y="166" width="770" height="26" rx="5" fill="#F5F8F6"/>
+        <text x="72" y="183" fill="#47705C" font-size="9">路径编码规则：项目绝对路径的斜杠替换为横线 · 找某项目历史直接进对应目录 · 物理隔离</text>
+
+        <line x1="60" y1="212" x2="1090" y2="212" stroke="#E8E4DE" stroke-width="1"/>
+
+        <text x="60" y="244" fill="#D97757" font-size="11" font-weight="700">Codex · 扁平按日期存放</text>
+        <rect x="60" y="256" width="200" height="34" rx="6" fill="#FBF1EC" stroke="#D97757" stroke-width="1.3"/>
+        <text x="160" y="277" fill="#A85536" font-size="10" font-weight="600" text-anchor="middle">$CODEX_HOME/sessions/</text>
+
+        <rect x="310" y="254" width="170" height="30" rx="5" fill="#FFFFFF" stroke="#D97757" stroke-width="1.1"/>
+        <text x="322" y="273" fill="#4A4540" font-size="9.5">YYYY/MM/DD/</text>
+        <rect x="500" y="254" width="180" height="30" rx="5" fill="#FBF1EC"/>
+        <text x="510" y="273" fill="#A85536" font-size="9">当日全部项目的会话混存</text>
+        <line x1="260" y1="271" x2="310" y2="271" stroke="#D97757" stroke-width="1.2" marker-end="url(#ar4)"/>
+
+        <rect x="700" y="238" width="390" height="112" rx="8" fill="#FFFFFF" stroke="#E8E4DE" stroke-width="1.2"/>
+        <text x="718" y="258" fill="#1a1a1a" font-size="10" font-weight="700">归属靠文件内首行 cwd 字段区分</text>
+        <line x1="718" y1="266" x2="1072" y2="266" stroke="#F0EDE8" stroke-width="1"/>
+        <text x="726" y="286" fill="#4A4540" font-size="9.5">{"cwd": "/path/to/project-a", ...}</text>
+        <text x="726" y="305" fill="#4A4540" font-size="9.5">{"cwd": "/path/to/project-b", ...}</text>
+        <rect x="718" y="316" width="354" height="24" rx="4" fill="#FBF1EC"/>
+        <text x="726" y="332" fill="#A85536" font-size="8.5">按项目检索需用 codex resume 或读 session_index.jsonl</text>
+
+        <rect x="60" y="300" width="620" height="26" rx="5" fill="#FBF1EC"/>
+        <text x="72" y="317" fill="#A85536" font-size="9">文件名：rollout-&lt;时间戳&gt;-&lt;uuid&gt;.jsonl · 不按项目分目录</text>
+
+        <rect x="60" y="366" width="1030" height="38" rx="6" fill="#F5F0F5" stroke="#8B6F8A" stroke-width="1.2"/>
+        <text x="76" y="382" fill="#6B4F6A" font-size="9.5" font-weight="700">脱离目录开新对话：</text>
+        <text x="200" y="382" fill="#4A4540" font-size="9.5">Codex 允许不绑定任何项目 → 自动在 ~/Documents/Codex/YYYY-MM-DD/&lt;对话名&gt;/ 建临时工作区（预置 work/ 与 outputs/）</text>
+        <text x="76" y="397" fill="#6B4F6A" font-size="9.5" font-weight="700">Claude Code 对照：</text>
+        <text x="200" y="397" fill="#4A4540" font-size="9.5">必须绑定一个工作目录，即使在家目录裸跑也会把家目录登记为项目，无法真正脱离目录</text>
+      </svg>
+    </div>
+
+    <h2 class="rose"><span class="bar"></span>三、Codex 原生锁定路径清单</h2>
+    <p class="sec-desc">以下路径名由 Codex 程序内部的发现逻辑写死，重命名后对应功能即失效。这是「为什么 Codex 非得分成几处」的根本原因。</p>
+    <table>
+      <thead><tr><th style="width:26%">路径</th><th style="width:12%">层级</th><th style="width:30%">用途</th><th style="width:32%">约束</th></tr></thead>
+      <tbody>
+        <tr><td><code>$CODEX_HOME/skills</code></td><td>全局</td><td>全局技能加载目录</td><td><span class="tag locked">原生锁定</span> 默认 <code>~/.codex/skills</code></td></tr>
+        <tr><td><code>.agents/skills</code></td><td>项目</td><td>项目级技能</td><td><span class="tag locked">原生锁定</span> 改名后技能不被发现</td></tr>
+        <tr><td><code>.agents/plugins</code></td><td>项目</td><td>项目级插件</td><td><span class="tag locked">原生锁定</span></td></tr>
+        <tr><td><code>.codex/config.toml</code></td><td>项目</td><td>项目配置、环境变量注入</td><td><span class="tag locked">原生锁定</span></td></tr>
+        <tr><td><code>.codex/agents</code></td><td>项目</td><td>Agent 定义（TOML 格式）</td><td><span class="tag locked">原生锁定</span></td></tr>
+        <tr><td><code>.codex/hooks</code></td><td>项目</td><td>钩子脚本</td><td><span class="tag locked">原生锁定</span></td></tr>
+        <tr><td><code>AGENTS.md</code></td><td>项目根</td><td>项目指令文档（project doc）</td><td><span class="tag locked">原生锁定</span> 必须位于项目根</td></tr>
+        <tr><td><code>.codex/skills</code></td><td>项目</td><td>指向 <code>.agents/skills</code> 的软链</td><td><span class="tag free">可选自建</span> 纯视图，可随时删除</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="sage"><span class="bar"></span>四、双环境迁移指南</h2>
+    <p class="sec-desc">哪些能直接搬、哪些必须手工转写、哪些不该搬。</p>
+    <table>
+      <thead><tr><th style="width:18%">内容</th><th style="width:14%">可迁移性</th><th style="width:68%">操作要点</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>skills/</b></td>
+          <td><span class="tag free">直接复制</span></td>
+          <td>目录结构与 <code>SKILL.md</code> 格式两边完全兼容，<code>rsync -a --exclude='.git' --exclude='.DS_Store'</code> 即可。<b>唯一必查项</b>：SKILL.md 正文里嵌的脚本路径前缀，迁移后需对齐到目标环境，否则照文档执行会报文件不存在。用 <code>grep -rn 'claude/skills\|agents/skills' SKILL.md</code> 核对。</td>
+        </tr>
+        <tr>
+          <td><b>agents/</b></td>
+          <td><span class="tag locked">手工转写</span></td>
+          <td>格式不同：Claude Code 用 Markdown（<code>agents/*.md</code>），Codex 用 TOML（<code>.codex/agents/*.toml</code>）且指令正文需放进 <code>developer_instructions</code> 字段。无自动转换工具。</td>
+        </tr>
+        <tr>
+          <td><b>配置文件</b></td>
+          <td><span class="tag locked">不要迁移</span></td>
+          <td>语义不对等。Claude Code 的 <code>settings.json</code> 核心是权限白名单（可访问域名、可执行命令模式）；Codex 用 <code>config.toml</code> 的 <code>sandbox_mode</code> + <code>approval_policy</code> 表达同类语义，粒度完全不同，逐条搬运既无处可放也无意义。</td>
+        </tr>
+        <tr>
+          <td><b>MCP 配置</b></td>
+          <td><span class="tag locked">格式转写</span></td>
+          <td>Claude Code 用 <code>.mcp.json</code> 的 <code>mcpServers</code> 字段；Codex 写在 <code>config.toml</code> 的 <code>[mcp_servers.&lt;name&gt;]</code> 表下。字段含义（command/args/url）基本一致，结构需改写。</td>
+        </tr>
+        <tr>
+          <td><b>指令文档</b></td>
+          <td><span class="tag free">改名即可</span></td>
+          <td><code>CLAUDE.md</code> ↔ <code>AGENTS.md</code>，Markdown 内容通用。注意落位差异：Claude Code 收在 <code>.claude/</code> 内，Codex 项目级必须放项目根。</td>
+        </tr>
+        <tr>
+          <td><b>会话历史</b></td>
+          <td><span class="tag locked">不可迁移</span></td>
+          <td>存储布局与 jsonl 内部结构均不同（按项目分目录 vs 按日期扁平 + <code>cwd</code> 字段），无现成转换工具。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 class="plum"><span class="bar"></span>五、API Key 与中转站原理</h2>
+    <p class="sec-desc">为什么填一个 Key 就能立刻用上模型？为什么模型列表里会出现厂商官网查不到的名字？两个问题的答案在同一条链路上。</p>
+    <div class="diagram-container">
+      <svg viewBox="0 0 1150 620">
+        <defs>
+          <marker id="r1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#5B8A72"/></marker>
+          <marker id="r2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#D97757"/></marker>
+          <marker id="r3" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#8B6F8A"/></marker>
+          <pattern id="dots3" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="0.6" fill="#E0DCD6"/></pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#dots3)"/>
+
+        <!-- ===== 模式一：直连 ===== -->
+        <text x="60" y="34" fill="#5B8A72" font-size="11" font-weight="700">模式一 · 直连厂商</text>
+        <rect x="290" y="22" width="300" height="18" rx="4" fill="#F5F8F6"/>
+        <text x="300" y="35" fill="#47705C" font-size="9">客户端出厂就写好了怎么发请求，只缺一张「电话卡」</text>
+
+        <rect x="60" y="52" width="200" height="62" rx="8" fill="#FFFFFF" stroke="#5B8A72" stroke-width="1.4"/>
+        <text x="160" y="74" fill="#1a1a1a" font-size="11" font-weight="700" text-anchor="middle">客户端</text>
+        <text x="160" y="92" fill="#6B6560" font-size="9" text-anchor="middle">Codex / Claude Code</text>
+        <text x="160" y="106" fill="#B0AAA4" font-size="8.5" text-anchor="middle">本机 · 不含模型</text>
+
+        <rect x="430" y="52" width="200" height="62" rx="8" fill="#FFFFFF" stroke="#5B8A72" stroke-width="1.4"/>
+        <text x="530" y="74" fill="#1a1a1a" font-size="11" font-weight="700" text-anchor="middle">厂商 API</text>
+        <text x="530" y="92" fill="#6B6560" font-size="9" text-anchor="middle">公网统一接口</text>
+        <text x="530" y="106" fill="#B0AAA4" font-size="8.5" text-anchor="middle">验证身份 → 调度模型</text>
+
+        <rect x="800" y="52" width="180" height="62" rx="8" fill="#F3F6F4" stroke="#5B8A72" stroke-width="1.4"/>
+        <text x="890" y="79" fill="#47705C" font-size="11" font-weight="700" text-anchor="middle">模型</text>
+        <text x="890" y="97" fill="#6B6560" font-size="9" text-anchor="middle">始终在云端运行</text>
+
+        <line x1="260" y1="76" x2="430" y2="76" stroke="#5B8A72" stroke-width="1.4" marker-end="url(#r1)"/>
+        <rect x="288" y="58" width="114" height="16" rx="4" fill="#FAF9F6"/>
+        <text x="345" y="70" fill="#47705C" font-size="8.5" font-weight="600" text-anchor="middle">请求头携带 API Key</text>
+        <line x1="430" y1="96" x2="264" y2="96" stroke="#B0AAA4" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#r1)"/>
+        <text x="345" y="110" fill="#8B8680" font-size="8.5" text-anchor="middle">回传答案</text>
+
+        <line x1="630" y1="83" x2="800" y2="83" stroke="#5B8A72" stroke-width="1.4" marker-end="url(#r1)"/>
+
+        <line x1="60" y1="140" x2="1090" y2="140" stroke="#E8E4DE" stroke-width="1"/>
+
+        <!-- ===== 模式二：经中转站 ===== -->
+        <text x="60" y="172" fill="#D97757" font-size="11" font-weight="700">模式二 · 经中转站</text>
+        <rect x="300" y="160" width="380" height="18" rx="4" fill="#FBF1EC"/>
+        <text x="310" y="173" fill="#A85536" font-size="9">中间多一层自己的服务；因接口格式相同，客户端察觉不到差别</text>
+
+        <rect x="60" y="190" width="180" height="76" rx="8" fill="#FFFFFF" stroke="#D97757" stroke-width="1.4"/>
+        <text x="150" y="212" fill="#1a1a1a" font-size="11" font-weight="700" text-anchor="middle">客户端</text>
+        <text x="150" y="230" fill="#6B6560" font-size="9" text-anchor="middle">配置里只写</text>
+        <text x="150" y="245" fill="#A85536" font-size="8.5" text-anchor="middle">中转站地址 + 一个 Key</text>
+        <text x="150" y="259" fill="#B0AAA4" font-size="8.5" text-anchor="middle">以为自己在连厂商</text>
+
+        <rect x="390" y="190" width="200" height="76" rx="8" fill="#FBF1EC" stroke="#D97757" stroke-width="1.6"/>
+        <text x="490" y="212" fill="#A85536" font-size="11" font-weight="700" text-anchor="middle">中转站</text>
+        <text x="490" y="230" fill="#6B6560" font-size="9" text-anchor="middle">可跑在本机或公司内网</text>
+        <text x="490" y="245" fill="#6B6560" font-size="9" text-anchor="middle">持有真实凭据</text>
+        <text x="490" y="259" fill="#6B6560" font-size="9" text-anchor="middle">维护一份模型目录</text>
+
+        <rect x="760" y="182" width="200" height="30" rx="6" fill="#FFFFFF" stroke="#DCE8E1" stroke-width="1.2"/>
+        <text x="860" y="201" fill="#4A4540" font-size="9.5" text-anchor="middle">厂商 A</text>
+        <rect x="760" y="220" width="200" height="30" rx="6" fill="#FFFFFF" stroke="#DCE8E1" stroke-width="1.2"/>
+        <text x="860" y="239" fill="#4A4540" font-size="9.5" text-anchor="middle">厂商 B</text>
+        <rect x="760" y="258" width="200" height="30" rx="6" fill="#FFFFFF" stroke="#DCE8E1" stroke-width="1.2"/>
+        <text x="860" y="277" fill="#4A4540" font-size="9.5" text-anchor="middle">厂商 C</text>
+
+        <line x1="240" y1="222" x2="390" y2="222" stroke="#D97757" stroke-width="1.4" marker-end="url(#r2)"/>
+        <rect x="258" y="204" width="114" height="16" rx="4" fill="#FAF9F6"/>
+        <text x="315" y="216" fill="#A85536" font-size="8.5" font-weight="600" text-anchor="middle">同一套接口格式</text>
+        <line x1="390" y1="244" x2="244" y2="244" stroke="#B0AAA4" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#r2)"/>
+        <text x="315" y="258" fill="#8B8680" font-size="8.5" text-anchor="middle">原样传回</text>
+
+        <line x1="590" y1="212" x2="760" y2="197" stroke="#D97757" stroke-width="1.3" marker-end="url(#r2)"/>
+        <line x1="590" y1="228" x2="760" y2="235" stroke="#D97757" stroke-width="1.3" marker-end="url(#r2)"/>
+        <line x1="590" y1="244" x2="760" y2="273" stroke="#D97757" stroke-width="1.3" marker-end="url(#r2)"/>
+        <rect x="620" y="288" width="180" height="18" rx="4" fill="#FAF9F6"/>
+        <text x="710" y="301" fill="#A85536" font-size="8.5" font-weight="600" text-anchor="middle">用真实凭据代为转接</text>
+
+        <line x1="60" y1="330" x2="1090" y2="330" stroke="#E8E4DE" stroke-width="1"/>
+
+        <!-- ===== 模型列表从哪来 ===== -->
+        <text x="60" y="362" fill="#8B6F8A" font-size="11" font-weight="700">模型列表从哪来 · 为什么会出现没见过的模型名</text>
+
+        <rect x="60" y="378" width="190" height="54" rx="8" fill="#FFFFFF" stroke="#8B6F8A" stroke-width="1.3"/>
+        <text x="155" y="400" fill="#1a1a1a" font-size="10" font-weight="700" text-anchor="middle">1 · 客户端启动</text>
+        <text x="155" y="418" fill="#6B6560" font-size="9" text-anchor="middle">向服务地址提问</text>
+
+        <rect x="320" y="378" width="230" height="54" rx="8" fill="#F5F0F5" stroke="#8B6F8A" stroke-width="1.3"/>
+        <text x="435" y="400" fill="#6B4F6A" font-size="10" font-weight="700" text-anchor="middle">2 · 「你这儿有哪些模型？」</text>
+        <text x="435" y="418" fill="#6B6560" font-size="9" text-anchor="middle">标准接口的一次普通查询</text>
+
+        <rect x="620" y="378" width="230" height="54" rx="8" fill="#FFFFFF" stroke="#8B6F8A" stroke-width="1.3"/>
+        <text x="735" y="400" fill="#1a1a1a" font-size="10" font-weight="700" text-anchor="middle">3 · 中转站返回自己的目录</text>
+        <text x="735" y="418" fill="#6B6560" font-size="9" text-anchor="middle">名字由中转站自行定义</text>
+
+        <rect x="920" y="378" width="170" height="54" rx="8" fill="#F5F0F5" stroke="#8B6F8A" stroke-width="1.3"/>
+        <text x="1005" y="400" fill="#6B4F6A" font-size="10" font-weight="700" text-anchor="middle">4 · 界面里出现</text>
+        <text x="1005" y="418" fill="#6B6560" font-size="9" text-anchor="middle">你没配置过的名字</text>
+
+        <line x1="250" y1="405" x2="320" y2="405" stroke="#8B6F8A" stroke-width="1.3" marker-end="url(#r3)"/>
+        <line x1="550" y1="405" x2="620" y2="405" stroke="#8B6F8A" stroke-width="1.3" marker-end="url(#r3)"/>
+        <line x1="850" y1="405" x2="920" y2="405" stroke="#8B6F8A" stroke-width="1.3" marker-end="url(#r3)"/>
+
+        <rect x="60" y="448" width="1030" height="44" rx="6" fill="#F5F0F5" stroke="#8B6F8A" stroke-width="1.2"/>
+        <text x="76" y="466" fill="#6B4F6A" font-size="9.5" font-weight="700">结论：</text>
+        <text x="130" y="466" fill="#4A4540" font-size="9.5">模型能不能用，取决于中转站有没有挂这个模型，而非客户端。列表里的名字是中转站的「菜单」，可能是厂商型号，</text>
+        <text x="130" y="482" fill="#4A4540" font-size="9.5">也可能是中转站自定的代号；同一个代号背后接哪家模型，由中转站决定，随时可换而客户端无感。</text>
+
+        <!-- ===== 两个配置项 ===== -->
+        <rect x="60" y="508" width="500" height="96" rx="8" fill="#FFFFFF" stroke="#E8E4DE" stroke-width="1.2"/>
+        <text x="80" y="530" fill="#1a1a1a" font-size="10.5" font-weight="700">配置里要分清的两件事</text>
+        <line x1="80" y1="538" x2="540" y2="538" stroke="#F0EDE8" stroke-width="1"/>
+        <text x="90" y="558" fill="#A85536" font-size="9.5" font-weight="600">服务地址</text>
+        <text x="180" y="558" fill="#4A4540" font-size="9.5">决定请求发往哪里（中转站 or 厂商官方）</text>
+        <text x="90" y="578" fill="#A85536" font-size="9.5" font-weight="600">模型名</text>
+        <text x="180" y="578" fill="#4A4540" font-size="9.5">决定对方帮你转接给谁</text>
+        <text x="90" y="596" fill="#B0AAA4" font-size="8.5">改地址 = 换话务台；改模型名 = 换要找的人</text>
+
+        <rect x="590" y="508" width="500" height="96" rx="8" fill="#FDF6F0" stroke="#F0DCC8" stroke-width="1.2"/>
+        <text x="610" y="530" fill="#A85536" font-size="10.5" font-weight="700">顺链路排查</text>
+        <line x1="610" y1="538" x2="1070" y2="538" stroke="#F0DCC8" stroke-width="1"/>
+        <text x="620" y="557" fill="#6B5A4A" font-size="9.5">连不上 →</text>
+        <text x="700" y="557" fill="#4A4540" font-size="9.5">中转站没启动，或服务地址写错</text>
+        <text x="620" y="575" fill="#6B5A4A" font-size="9.5">没权限 →</text>
+        <text x="700" y="575" fill="#4A4540" font-size="9.5">Key 无效、过期，或额度用尽</text>
+        <text x="620" y="593" fill="#6B5A4A" font-size="9.5">模型不存在 →</text>
+        <text x="700" y="593" fill="#4A4540" font-size="9.5">中转站没挂这个模型名</text>
+      </svg>
+    </div>
+
+    <h2><span class="bar"></span>六、速查卡</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="card-header"><div class="card-dot terracotta"></div><h3>找全局技能</h3></div>
+        <ul>
+          <li>Codex → <code>$CODEX_HOME/skills/</code></li>
+          <li>Claude → <code>~/.claude/skills/</code></li>
+          <li>两者均为单一目录</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-dot sage"></div><h3>找项目技能</h3></div>
+        <ul>
+          <li>Codex → <code>&lt;project&gt;/.agents/skills/</code></li>
+          <li>Claude → <code>&lt;project&gt;/.claude/skills/</code></li>
+          <li>Codex 可加软链统一入口</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-dot plum"></div><h3>找会话记录</h3></div>
+        <ul>
+          <li>Codex → <code>sessions/</code> 按日期</li>
+          <li>Claude → <code>projects/</code> 按项目</li>
+          <li>Codex 检索用 <code>codex resume</code></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-dot rose"></div><h3>装新技能落哪</h3></div>
+        <ul>
+          <li>通用 → 全局 <code>skills/</code></li>
+          <li>仅本项目 → 项目 <code>skills/</code></li>
+          <li>两边都要用则各放一份</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="warn">
+      <b>三个容易踩的坑</b><br><br>
+      <b>1 · 技能文档里的硬编码路径。</b>SKILL.md 正文常嵌有可执行命令，路径前缀写死了源环境（如 <code>.claude/skills/...</code>）。跨环境复制技能目录后必须同步改写这些前缀，否则按文档执行会报文件不存在。<br><br>
+      <b>2 · 全局家目录可能不止一个。</b>Codex 的全局目录由 <code>$CODEX_HOME</code> 决定，不同发行版或安装方式可能指向不同路径。若历史上装过多个版本，家目录下会残留多个配置目录，判断当前生效的那个应以 <code>$CODEX_HOME</code> 为准，而非目录名。<br><br>
+      <b>3 · 项目配置里的明文凭据。</b><code>.codex/config.toml</code> 可通过 <code>[shell_environment_policy.set]</code> 注入环境变量，常被用来放 API Key。这类文件若随仓库提交会泄露凭据，应确认已被 <code>.gitignore</code> 排除。
+    </div>
+
+    <div class="footer">
+      Environment Topology · Codex &amp; Claude Code<br>
+      示例路径中 <code>&lt;user&gt;</code> / <code>&lt;project&gt;</code> 为占位符
+    </div>
+  </div>
+</body>
+</html>
